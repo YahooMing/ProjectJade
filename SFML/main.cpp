@@ -1,88 +1,8 @@
 #include <SFML/Graphics.hpp>
-
-class Platform {
-private:
-    sf::RectangleShape shape;
-
-public:
-    Platform(float x, float y, float width, float height)
-    {
-        shape.setSize({width, height});
-        shape.setPosition(x, y);
-        shape.setFillColor(sf::Color::Blue); 
-    }
-
-    // Sprawdza kolizję z postacią
-    bool isColliding(const sf::RectangleShape& hero) const
-    {
-        return shape.getGlobalBounds().intersects(hero.getGlobalBounds());
-    }
-
-    // Rysuje platformę na ekranie
-    void draw(sf::RenderWindow& window) const
-    {
-        window.draw(shape);
-    }
-
-    // Sprawdza pozycje platformy
-    sf::Vector2f getPosition() const
-    {
-        return shape.getPosition();
-    }
-};
-
-class Enemy {
-private:
-    sf::RectangleShape shape;
-    float speed; 
-    float leftBoundary;
-    float rightBoundary;
-    bool moveRight = true;
-
-public:
-    Enemy(float x, float y, float width, float height, float speed, float leftBound, float rightBound)
-    : speed(speed), leftBoundary(leftBound), rightBoundary(rightBound)
-    {
-        shape.setSize({width, height});
-        shape.setPosition(x, y);
-        shape.setFillColor(sf::Color::Magenta);
-    }
-
-    void patrol()
-    {
-    if (moveRight)
-    {
-        shape.move(speed, 0);
-        if (shape.getPosition().x + shape.getSize().x > rightBoundary)
-        {
-            moveRight = false;
-            shape.setPosition(rightBoundary - shape.getSize().x, shape.getPosition().y); // Ustawienie dokładnej pozycji przy granicy
-        }
-    }
-    else
-    {
-        shape.move(-speed, 0);
-        if (shape.getPosition().x < leftBoundary)
-        {
-            moveRight = true;
-            shape.setPosition(leftBoundary, shape.getPosition().y); // Ustawienie dokładnej pozycji przy granicy
-        }
-    }
-    }
-
-    bool isColliding(const sf::RectangleShape& hero) const
-    {
-        return shape.getGlobalBounds().intersects(hero.getGlobalBounds());
-    }
-
-    void draw(sf::RenderWindow& window) const
-    {
-        window.draw(shape);
-    }
-};
-
-
-
+#include "platform.h"
+#include <iostream>
+#include "enemy.h"
+//#include "hero.h" //do zrobienia w przyszłości
 
 int main()
 {
@@ -91,9 +11,9 @@ int main()
     sf::RenderWindow window(rozdzielczosc, "Project Jade");
     sf::RectangleShape hero;
     sf::RectangleShape floor;
-    //sf::RectangleShape platform;
     std::vector<Platform> platforms;
     sf::View camera(sf::FloatRect(0, 0, rozdzielczosc.width, rozdzielczosc.height)); //stworzenie kamery
+    window.setFramerateLimit(420); //ograniczenie fps do 420
 
 
     hero.setFillColor(sf::Color::Red);
@@ -107,10 +27,6 @@ int main()
     floor.setFillColor(sf::Color::Green); 
 
     std::vector<Enemy> enemies;
-    
-    //platform.setSize(sf::Vector2f(200, 40)); 
-    //platform.setFillColor(sf::Color::Blue); 
-    //platform.setPosition(100, 600);
 
 
     float xVelocity = 1;
@@ -120,6 +36,8 @@ int main()
     const float grawitacja = 0.05f; // Przyspieszenie grawitacyjne
     bool isJumping = false;
     const float xJumpVelocity = 2.0f;  // Wartość prędkości skoku w osi X
+    int health = 3;
+    int points = 1000;
 
 
     sf::Clock jumpClock;
@@ -130,9 +48,22 @@ int main()
     platforms.push_back(Platform(100, 600, 200, 40));
     platforms.push_back(Platform(400, 500, 200, 40));
 
-    enemies.push_back(Enemy(300, 350, 80, 80, 1.0f, 250, 500)); 
+    enemies.push_back(Enemy(1000, (groundHeight-80), 80, 80, 1.0f, 1000, 1500)); 
 
+    sf::Font font;
+    if (!font.loadFromFile("testfont.ttf")) {
+    // Wczytaj czcionkę, którą chcesz użyć. Upewnij się, że plik czcionki znajduje się w katalogu z projektem.  
+    }
 
+    sf::Text healthText;
+    healthText.setFont(font);
+    healthText.setCharacterSize(24);
+    healthText.setFillColor(sf::Color::White);
+
+    sf::Text pointsText;
+    pointsText.setFont(font);
+    pointsText.setCharacterSize(24);
+    pointsText.setFillColor(sf::Color::White);
 
     while (window.isOpen())
     {
@@ -144,6 +75,10 @@ int main()
         }
         camera.setCenter(hero.getPosition().x , camera.getCenter().y); //ustawienie kamery na bohaterze
         window.setView(camera); //ustawienie widoku na kamerze
+        sf::Vector2f cameraPosition = camera.getCenter();
+        sf::Vector2f cameraSize = camera.getSize();
+        healthText.setPosition(cameraPosition.x - cameraSize.x / 2.0f + 10, cameraPosition.y - cameraSize.y / 2.0f + 10);
+        pointsText.setPosition(healthText.getPosition().x + healthText.getLocalBounds().width + 20, healthText.getPosition().y);
 
         for (const auto& platform : platforms)
         {
@@ -158,6 +93,8 @@ int main()
                 }
             }
         }
+        healthText.setString("Health : " + std::to_string(health)); //wyświetlanie żyćka
+        pointsText.setString("Points : " + std::to_string(points)); //wyświetlanie punktów
 
         // Poruszanie sie LEWO PRAWO
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -205,20 +142,23 @@ int main()
         {
             if (enemy.isColliding(hero))
             {
-        // Tutaj dodaj logikę, co powinno się stać po kolizji.
-        //PLACEHOLDER
-        //window.close();  
+            //window.close();
+            //std::cout << enemy.getSpeed() << std::endl;
+            //if (hero.getHealth() > 0) {
+            //hero.takeDamage(1); // Odejmowanie życia bohaterowi (możesz zmienić ilość)
             }
         }
 
 
         window.clear();
         window.draw(hero);
-        window.draw(floor);  
+        window.draw(floor);
+        window.draw(healthText);
+        window.draw(pointsText);
+
         for (auto& enemy : enemies)
         {
             enemy.patrol();
-            //enemy.chase(hero);
             enemy.draw(window);
         }
 
