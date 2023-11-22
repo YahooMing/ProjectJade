@@ -7,6 +7,8 @@ private:
     float leftBoundary;
     float rightBoundary;
     bool moveRight = true;
+    float width;
+    float height;
 
 public:
     Enemy(float x, float y, float width, float height, float speed, float leftBound, float rightBound)
@@ -17,6 +19,25 @@ public:
         shape.setFillColor(sf::Color::Magenta);
     }
 
+    bool markForRemoval = false;
+
+    float getHeight() const {
+        return shape.getSize().y;
+    }
+    bool isHeadHit(const sf::RectangleShape& hero) const {
+        // Sprawdź kolizję z głową wroga
+        sf::FloatRect headRect = {shape.getPosition().x, shape.getPosition().y, shape.getSize().x, shape.getSize().y / 2.0f};
+        sf::FloatRect heroRect = {hero.getPosition().x, hero.getPosition().y, hero.getSize().x, hero.getSize().y};
+        return headRect.intersects(heroRect);
+    }
+    sf::Vector2f getPosition() const {
+        return shape.getPosition();
+    }
+    
+
+    float getWidth() const {
+        return shape.getSize().x;
+    }
     void patrol()
     {
         if (moveRight)
