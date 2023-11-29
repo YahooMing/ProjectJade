@@ -9,6 +9,7 @@ private:
     bool moveRight = true;
     float width;
     float height;
+    sf::Color invisible{0, 0, 0, 0};
 
 public:
     Enemy(float x, float y, float width, float height, float speed, float leftBound, float rightBound)
@@ -16,7 +17,7 @@ public:
     {
         shape.setSize({width, height});
         shape.setPosition(x, y);
-        shape.setFillColor(sf::Color::Magenta);
+        shape.setFillColor(invisible);
     }
 
     bool markForRemoval = false;

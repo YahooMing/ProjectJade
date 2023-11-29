@@ -2,11 +2,28 @@
 #include "platform.h"
 #include <iostream>
 #include "enemy.h"
-//#include "hero.h" //do zrobienia w przyszłości
+#include <vector>
+
 
 enum GameState{
     MainMenu,
-    Gameplay
+    Gameplay,
+    LevelSelection,
+    Exit
+};
+
+class MenuItem {
+public:
+    sf::Text text;
+    bool isSelected;
+    MenuItem(const std::string& content, const sf::Font& font, unsigned int characterSize, sf::Color color, sf::Vector2f position)
+        : isSelected(false) {
+        text.setString(content);
+        text.setFont(font);
+        text.setCharacterSize(characterSize);
+        text.setFillColor(color);
+        text.setPosition(position);
+    }
 };
 
 class Collectible {
@@ -45,7 +62,8 @@ int main()
     window.setFramerateLimit(420); //ograniczenie fps do 420
     sf::Clock clock;
     sf::Time elapsed;
-    hero.setFillColor(sf::Color::Red);
+    sf::Color invisible(0, 0, 0, 0);
+    hero.setFillColor(invisible);
 
     sf::Vector2f PozycjaStartowa(600,350);
 
@@ -67,7 +85,7 @@ int main()
     const float xJumpVelocity = 2.0f;  // Wartość prędkości skoku w osi X
     int health = 3;
     int points = 1000;
-
+    bool isGamePaused = false;
 
     sf::Clock damageClock;
     const float damageCooldown = 0.5f;
@@ -110,13 +128,42 @@ int main()
     startText.setFont(font);
     startText.setCharacterSize(50);
     startText.setFillColor(sf::Color::White);
-    startText.setString("Press SPACE to start");
+    startText.setString("START (ENTER)");
+
+    sf::Text exitText;
+    exitText.setFont(font);
+    exitText.setCharacterSize(50);
+    exitText.setFillColor(sf::Color::White);
+    exitText.setString("WYJDZ (ESC)");
+
+    sf::Texture mcTexture;
+    if (!mcTexture.loadFromFile("mc.png")) {
+        return -1;
+    }
+    sf::Texture enemyTexture;
+    if (!enemyTexture.loadFromFile("enemy.png")) {
+        return -1;
+    }
+
+    //sf::IntRect rectSourceSprite(0, 0, 32, 32); // Początkowy obszar źródłowy (rozmiar klatki)
+    // Utwórz obiekt sprite
+    sf::Sprite MC(mcTexture);
+    MC.setScale(5, 5); // Ustaw skalę sprite'a
+
+    sf::Sprite enemy(enemyTexture);
+    enemy.setScale(4, 4);
+
+    startText.setPosition(window.getSize().x / 2.0f - startText.getLocalBounds().width / 2.0f,
+                       window.getSize().y / 2.0f - startText.getLocalBounds().height / 2.0f);
+
+    exitText.setPosition(window.getSize().x / 2.0f - exitText.getLocalBounds().width / 2.0f,
+                       window.getSize().y / 2.0f - exitText.getLocalBounds().height / 2.0f + startText.getLocalBounds().height);
 
     sf::Text endText;
     endText.setFont(font);
     endText.setCharacterSize(50);
     endText.setFillColor(sf::Color::White);
-    endText.setString("GAME OVER");
+    endText.setString("KONIEC GRY");
 
     GameState gameState = MainMenu;
     bool isInMainMenu = true;
@@ -139,16 +186,23 @@ int main()
                         isGameOver = false;
                         isInMainMenu = true;
                     }
-                }
+                }else if(event.key.code == sf::Keyboard::Escape){
+                    if(gameState == MainMenu){
+                        window.close();
+                    }
+                }else if (event.key.code == sf::Keyboard::Tab && gameState == Gameplay ){
+                isGamePaused = !isGamePaused;
+            }
             }
         }
        
         if(gameState == MainMenu){
             window.clear();
             window.draw(startText);
+            window.draw(exitText);
             window.display();
         }
-        else if (gameState == Gameplay){
+        else if (gameState == Gameplay && !isGamePaused){
             if(isGameOver){
                 window.clear();
                 window.draw(endText);
@@ -218,10 +272,14 @@ int main()
             xVelocity = 1;
             hero.setPosition(hero.getPosition().x, groundHeight - hero.getSize().y);
         }
+        MC.setPosition(hero.getPosition().x, hero.getPosition().y-10); // Ustaw pozycję sprite'a na pozycji bohatera
+        enemy.setPosition(enemies[0].getPosition().x, enemies[0].getPosition().y-10);
 
 
         window.clear();
         window.draw(hero);
+        window.draw(enemy);
+        window.draw(MC);
         window.draw(floor);
         window.draw(healthText);
         window.draw(pointsText);
@@ -243,11 +301,14 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
                 health--;
                 damageClock.restart();
             }
+
+            // Pozostawienie bohatera na swojej pozycji bez dostosowywania
         }
     } else {
         ++it;
     }
 }
+
 
 
         for (auto it = collectibles.begin(); it != collectibles.end();) {
@@ -266,7 +327,19 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
         }
         window.display();
         //sf::sleep(sf::seconds(1.f/60.f));
-        }
+        }else if (isGamePaused)  // Dodaj warunek sprawdzający, czy gra jest zatrzymana
+    {
+        // Wyświetl napis "GRA ZATRZYMANA"
+        sf::Text pauseText;
+        pauseText.setFont(font);
+        pauseText.setCharacterSize(50);
+        pauseText.setFillColor(sf::Color::White);
+        pauseText.setString("GRA ZATRZYMANA");
+        pauseText.setPosition(camera.getCenter().x, camera.getCenter().y);
+        window.clear();
+        window.draw(pauseText);
+        window.display();
+    }
    
     }
 
