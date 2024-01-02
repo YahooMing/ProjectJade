@@ -2,75 +2,101 @@
 
 class Enemy {
 private:
-    sf::RectangleShape shape;
-    float speed; 
-    float leftBoundary;
-    float rightBoundary;
-    bool moveRight = true;
-    float width;
-    float height;
-    sf::Color invisible{0, 0, 0, 0};
+    sf::Sprite enemySprite;
+    std::vector<sf::Texture> enemyRightTextures;
+    std::vector<sf::Texture> enemyLeftTextures;
+    int currentFrame;
+    sf::Clock animationClock;
+    const float animationSpeed;
+
+    bool isMovingRight;
+    float patrolRange;
+    float patrolStart;
+    float patrolEnd;
+    float movementSpeed;
 
 public:
-    Enemy(float x, float y, float width, float height, float speed, float leftBound, float rightBound)
-    : speed(speed), leftBoundary(leftBound), rightBoundary(rightBound)
+    Enemy(float x, float y, float width, float height, float speed, float patrolRange)
+        : animationSpeed(0.1f), isMovingRight(true), currentFrame(0), patrolRange(patrolRange),
+          patrolStart(x), patrolEnd(x + patrolRange), movementSpeed(speed)
     {
-        shape.setSize({width, height});
-        shape.setPosition(x, y);
-        shape.setFillColor(invisible);
+        for (int i = 0; i < 2; ++i) {
+            sf::Texture rightTexture;
+            sf::Texture leftTexture;
+
+            std::string filenameRight = "enemy_right_" + std::to_string(i) + ".png";
+            std::string filenameLeft = "enemy_left_" + std::to_string(i) + ".png";
+
+            if (!rightTexture.loadFromFile(filenameRight) || !leftTexture.loadFromFile(filenameLeft)) {
+                // Handle error
+            }
+
+            enemyRightTextures.push_back(rightTexture);
+            enemyLeftTextures.push_back(leftTexture);
+        }
+
+        
+
+        enemySprite.setTexture(enemyRightTextures[0]);
+        enemySprite.setPosition(x, y);
+        enemySprite.setScale(4, 4);
     }
 
-    bool markForRemoval = false;
+    void move(float x, float y) {
+        // Przenieś SpecialEnemy na określone współrzędne
+        enemySprite.setPosition(x, y);
+    }
 
-    float getHeight() const {
-        return shape.getSize().y;
+    bool isHeadJumpedOn(const sf::RectangleShape& hero) const {
+    sf::FloatRect enemyBounds = enemySprite.getGlobalBounds();
+    sf::FloatRect heroBounds = hero.getGlobalBounds();
+
+    // Sprawdź, czy bohater dotyka głowy wroga
+    if (heroBounds.intersects(sf::FloatRect(enemyBounds.left + 10, enemyBounds.top, enemyBounds.width - 20, 10))) {
+        return true;
     }
-    bool isHeadHit(const sf::RectangleShape& hero) const {
-        // Sprawdź kolizję z głową wroga
-        sf::FloatRect headRect = {shape.getPosition().x, shape.getPosition().y, shape.getSize().x, shape.getSize().y / 2.0f};
-        sf::FloatRect heroRect = {hero.getPosition().x, hero.getPosition().y, hero.getSize().x, hero.getSize().y};
-        return headRect.intersects(heroRect);
-    }
-    sf::Vector2f getPosition() const {
-        return shape.getPosition();
-    }
+
+    return false;
+}
+
     
 
-    float getWidth() const {
-        return shape.getSize().x;
-    }
-    void patrol()
-    {
-        if (moveRight)
-        {
-        shape.move(speed, 0);
-        if (shape.getPosition().x + shape.getSize().x > rightBoundary)
-        {
-            moveRight = false;
-            shape.setPosition(rightBoundary - shape.getSize().x, shape.getPosition().y);
-            speed = -speed; // Zmiana kierunku prędkości po odbiciu
-        }
-        }
-        else
-        {
-            shape.move(speed, 0); // Użyj wartości ujemnej prędkości, aby iść w lewo
-            if (shape.getPosition().x < leftBoundary)
-            {
-            moveRight = true;
-            shape.setPosition(leftBoundary, shape.getPosition().y);
-            speed = -speed; // Zmiana kierunku prędkości po odbiciu
+    void patrol() {
+        float currentX = enemySprite.getPosition().x;
+
+        if (isMovingRight) {
+            enemySprite.move(movementSpeed, 0);
+            if (currentX >= patrolEnd) {
+                isMovingRight = false;
+            }
+        } else {
+            enemySprite.move(-movementSpeed, 0);
+            if (currentX <= patrolStart) {
+                isMovingRight = true;
             }
         }
+
+        if (animationClock.getElapsedTime().asSeconds() >= animationSpeed) {
+            currentFrame = (currentFrame + 1) % 2;
+            animationClock.restart();
+        }
+
+        if (isMovingRight) {
+            enemySprite.setTexture(enemyRightTextures[currentFrame]);
+        } else {
+            enemySprite.setTexture(enemyLeftTextures[currentFrame]);
+        }
     }
 
-
-    bool isColliding(const sf::RectangleShape& hero) const
-    {
-        return shape.getGlobalBounds().intersects(hero.getGlobalBounds());
+    void draw(sf::RenderWindow& window) const {
+        window.draw(enemySprite);
     }
 
-    void draw(sf::RenderWindow& window) const
-    {
-        window.draw(shape);
+    sf::Vector2f getPosition() const {
+        return enemySprite.getPosition();
+    }
+
+    bool isColliding(const sf::RectangleShape& other) const {
+        return enemySprite.getGlobalBounds().intersects(other.getGlobalBounds());
     }
 };
