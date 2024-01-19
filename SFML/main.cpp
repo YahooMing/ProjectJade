@@ -72,10 +72,18 @@ private:
     float patrolEnd;
     float movementSpeed;
 
+    std::vector<sf::RectangleShape> bullets;
+    float bulletSpeed;
+
+    sf::Clock shootClock;
+    const float shootCooldown = 1.0f;
+
+    std::vector<int> bulletStates;
+
 public:
-    SpecialEnemy(float x, float y, float width, float height, float speed, float patrolRange, int initialHealth)
+    SpecialEnemy(float x, float y, float width, float height, float speed, float patrolRange, int initialHealth, float bulletSpeed)
         : animationSpeed(0.1f), isMovingRight(true), currentFrame(0), patrolRange(patrolRange),
-          patrolStart(x), patrolEnd(x + patrolRange), movementSpeed(speed), health(initialHealth)
+          patrolStart(x), patrolEnd(x + patrolRange), movementSpeed(speed), health(initialHealth), bulletSpeed(bulletSpeed)
     {
         for (int i = 0; i < 2; ++i) {
             sf::Texture rightTexture;
@@ -96,28 +104,25 @@ public:
         enemySprite.setPosition(x, y);
         enemySprite.setScale(4, 4);
     }
+
     int getHealth() const {
         return health;
     }
 
     void move(float x, float y) {
-        // Przenieś SpecialEnemy na określone współrzędne
         enemySprite.setPosition(x, y);
     }
 
     bool isHeadJumpedOn(const sf::RectangleShape& hero) const {
-    sf::FloatRect enemyBounds = enemySprite.getGlobalBounds();
-    sf::FloatRect heroBounds = hero.getGlobalBounds();
+        sf::FloatRect enemyBounds = enemySprite.getGlobalBounds();
+        sf::FloatRect heroBounds = hero.getGlobalBounds();
 
-    // Sprawdź, czy bohater dotyka głowy wroga
-    if (heroBounds.intersects(sf::FloatRect(enemyBounds.left + 10, enemyBounds.top, enemyBounds.width - 20, 10))) {
-        return true;
+        if (heroBounds.intersects(sf::FloatRect(enemyBounds.left + 10, enemyBounds.top, enemyBounds.width - 20, 10))) {
+            return true;
+        }
+
+        return false;
     }
-
-    return false;
-}
-
-    
 
     void patrol() {
         float currentX = enemySprite.getPosition().x;
@@ -161,11 +166,50 @@ public:
     void takeDamage() {
         health--;
         if (health <= 0) {
-            // Tutaj można dodać kod obsługi, gdy health spadnie do zera lub poniżej
-            // Na przykład, możesz przenieść wroga na inne miejsce lub zniszczyć go
-            // W tym przykładzie, przenosimy wroga na pozycję (10000.0f, 10000.0f)
             move(10000.0f, 10000.0f);
         }
+    }
+
+    // Nowe funkcje dla strzelania i rysowania pocisków
+    void shoot() {
+        sf::RectangleShape bullet(sf::Vector2f(10.0f, 5.0f));
+        bullet.setPosition(enemySprite.getPosition().x, enemySprite.getPosition().y + enemySprite.getGlobalBounds().height / 2.0f);
+        bullet.setFillColor(sf::Color::Red);
+        if(shootClock.getElapsedTime().asSeconds() >= shootCooldown){
+            bullets.push_back(bullet);
+            if(isMovingRight){
+                bulletStates.push_back(1);
+            }else{
+                bulletStates.push_back(0);
+            }
+            shootClock.restart();
+        }
+        
+    }
+
+    void updateBullets() {
+        for (auto& bullet : bullets) {
+            if(bulletStates[&bullet - &bullets[0]] == 1){
+                bullet.move(bulletSpeed, 0);
+        }else{
+            bullet.move(-bulletSpeed, 0);
+        }
+        }
+    }
+
+    void drawBullets(sf::RenderWindow& window) const {
+        for (const auto& bullet : bullets) {
+            window.draw(bullet);
+        }
+    }
+
+    bool isBulletColliding(const sf::RectangleShape& other) const {
+        for (const auto& bullet : bullets) {
+            if (bullet.getGlobalBounds().intersects(other.getGlobalBounds())) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
@@ -323,9 +367,9 @@ int main()
     std::vector<SpecialEnemy> specialEnemies;
 
     // Add SpecialEnemies to the vector
-    specialEnemies.push_back(SpecialEnemy(3000, groundHeight - 80, 80, 80, 1.0f, 300,2));
-    specialEnemies.push_back(SpecialEnemy(5000, groundHeight - 80, 80, 80, 1.0f, 200,2));
-    specialEnemies.push_back(SpecialEnemy(7000, groundHeight - 80, 80, 80, 1.0f, 250,2));
+    specialEnemies.push_back(SpecialEnemy(3000, groundHeight - 80, 80, 80, 1.0f, 300,2,1));
+    specialEnemies.push_back(SpecialEnemy(5000, groundHeight - 80, 80, 80, 1.0f, 200,2,1));
+    specialEnemies.push_back(SpecialEnemy(7000, groundHeight - 80, 80, 80, 1.0f, 250,2,1));
 
     std::vector<Enemy> enemies;
 
@@ -742,6 +786,9 @@ else if (isLeft)
 for (auto it = specialEnemies.begin(); it != specialEnemies.end(); ) {
     it->patrol();
     it->draw(window);
+    it->shoot();
+    it->updateBullets();
+    it->drawBullets(window);
 
     // Check collision with special enemy
     if (it->isColliding(hero) && it->isHeadJumpedOn(hero) && isJumping) {
