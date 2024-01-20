@@ -188,12 +188,25 @@ public:
     }
 
     void updateBullets() {
-        for (auto& bullet : bullets) {
-            if(bulletStates[&bullet - &bullets[0]] == 1){
+        for (auto it = bullets.begin(); it != bullets.end();) {
+            sf::RectangleShape& bullet = *it;
+            int bulletIndex = std::distance(bullets.begin(), it);
+
+            if (bulletStates[bulletIndex] == 1) {
                 bullet.move(bulletSpeed, 0);
-        }else{
-            bullet.move(-bulletSpeed, 0);
-        }
+            } else {
+                bullet.move(-bulletSpeed, 0);
+            }
+
+            // Sprawdź odległość przebytą przez pocisk
+            float distanceTraveled = std::abs(bullet.getPosition().x - enemySprite.getPosition().x);
+            if (distanceTraveled > (3*patrolRange)) {
+                // Jeśli przekroczył pewien dystans, usuń pocisk
+                it = bullets.erase(it);
+                bulletStates.erase(bulletStates.begin() + bulletIndex);
+            } else {
+                ++it;
+            }
         }
     }
 
@@ -367,9 +380,9 @@ int main()
     std::vector<SpecialEnemy> specialEnemies;
 
     // Add SpecialEnemies to the vector
-    specialEnemies.push_back(SpecialEnemy(3000, groundHeight - 80, 80, 80, 1.0f, 300,2,1));
-    specialEnemies.push_back(SpecialEnemy(5000, groundHeight - 80, 80, 80, 1.0f, 200,2,1));
-    specialEnemies.push_back(SpecialEnemy(7000, groundHeight - 80, 80, 80, 1.0f, 250,2,1));
+    specialEnemies.push_back(SpecialEnemy(3000, groundHeight - 80, 80, 80, 1.0f, 300,2,3));
+    specialEnemies.push_back(SpecialEnemy(5000, groundHeight - 80, 80, 80, 1.0f, 200,2,3));
+    specialEnemies.push_back(SpecialEnemy(7000, groundHeight - 80, 80, 80, 1.0f, 250,2,3));
 
     std::vector<Enemy> enemies;
 
