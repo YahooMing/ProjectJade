@@ -41,16 +41,20 @@ To play the game, you need a few files (all included in the game folder). Howeve
    -  Open a terminal (cmd) and type the following command to check if GCC is correctly installed: ```g++ --version```
    
 ## Compilation
-
+   ```g++ -c main.cpp -I"...\SFML-2.X.X\include"```
+   ```g++ main.o -o project_jade -L"...\SFML-2.X.X\lib```
+   ```./project_jade```
+   
 ## Controls
 - **Movement:**
   - Left: Key 'A'
   - Right: Key 'D'
   - Jump: Space
 
-- **Akcje:**
+- **Actions:**
   - Switch Screen Mode (only works in Main Menu): Key 'P'
   - Pause (only works in Gameplay): Key 'TAB'
+  - Choose the option: Key 'ENTER'
 
 #### PO POLSKU
 ## O Projekcie
