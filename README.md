@@ -17,7 +17,8 @@ To play the game, you need a few files (all included in the game folder). Howeve
    - Play the game all you want!
 
 **If you want to change the content and compile**
-  -  Go to the official SFML website: https://www.sfml-dev.org/download.phpDownload the appropriate version of SFML for your operating system and compiler. On Windows, choose "MinGW".
+  -  Go to the official [SFML Website](https://www.sfml-dev.org/download.php)
+  -  Download the appropriate version of SFML for your operating system and compiler. On Windows, choose "MinGW".
   -  After downloading, extract the SFML files to an appropriate directory on your computer. You can create a new folder, e.g., "SFML," and place all the files there.
   -  Add paths to the bin (containing DLL files), lib (containing library files), and include (containing header files) folders to the system's environment variables. Here's how to do it on Windows:
      - Right-click on the Computer (or This PC) icon on your desktop and select "Properties."
@@ -25,8 +26,20 @@ To play the game, you need a few files (all included in the game folder). Howeve
      - Click on "Environment Variables..." at the bottom.
      - In the "System variables" section, find the "Path" variable and click "Edit..."
      - Click "New" and add the paths to the SFML bin, lib, and include folders.
-  - Check installation by opening the terminal and typing "g++ -v"
+  - Check installation by opening the terminal and typing ```g++ -v```
   - From now on you can edit and compile my code
+
+**GCC Instalation (It is required in order to edit and compile)**
+   - Visit the [MinGW Installer page](https://osdn.net/projects/mingw/).
+   -  Download the latest version of "mingw-get-setup.exe".
+   -  Run the downloaded `mingw-get-setup.exe` file to launch the installer.
+   -  In the installer window, select the "Basic Setup" option.
+   -  From the "Installation" menu, choose "Update Catalogue" and wait for the update to complete.
+   -  Back in the "Installation" menu, select "Apply Changes".
+   -  In the "Pending Changes" window, check "mingw32-gcc-g++" and click "Apply Changes" again. The installer will download and install GCC.
+   -  Add paths to the MinGW `bin` folders to the system's environment variables. Similar to the SFML installation, include paths such as `C:\MinGW\bin` and `C:\MinGW\msys\1.0\bin`.
+   -  Open a terminal (cmd) and type the following command to check if GCC is correctly installed: ```g++ --version```
+   
 ## Compilation
 
 ## Controls
