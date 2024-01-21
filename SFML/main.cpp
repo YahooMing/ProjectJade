@@ -10,7 +10,6 @@
 #include "Lava.h"
 #include <fstream>
 #include <ctime>
-//#include "boss.h"
 
 class finish{
 private:
@@ -103,6 +102,10 @@ public:
         enemySprite.setTexture(enemyRightTextures[0]);
         enemySprite.setPosition(x, y);
         enemySprite.setScale(4, 4);
+    }
+
+    const std::vector<sf::RectangleShape>& getBullets() const {
+        return bullets;
     }
 
     int getHealth() const {
@@ -217,13 +220,13 @@ public:
     }
 
     bool isBulletColliding(const sf::RectangleShape& other) const {
-        for (const auto& bullet : bullets) {
-            if (bullet.getGlobalBounds().intersects(other.getGlobalBounds())) {
-                return true;
-            }
+    for (const auto& bullet : bullets) {
+        if (bullet.getGlobalBounds().intersects(other.getGlobalBounds())) {
+            return true;  // Return true if any bullet collides
         }
-        return false;
     }
+    return false;  // Return false if no collision is found
+}
 };
 
 enum GameState{
@@ -271,13 +274,16 @@ int main()
     sf::Vector2f PozycjaStartowa(600,350);
     //Ściana blokady
      sf::RectangleShape invisibleWall(sf::Vector2f(20, 1000));
+    invisibleWall.setFillColor(sf::Color::Transparent); 
+
+    sf::RectangleShape finishleWall(sf::Vector2f(20, 1000));
     invisibleWall.setFillColor(sf::Color::Red); 
 
 
     hero.setPosition(PozycjaStartowa);
     hero.setSize(sf::Vector2f(100, 100));
 
-    floor.setSize(sf::Vector2f(1000000, 100)); 
+    floor.setSize(sf::Vector2f((9900+1000), 100)); 
     floor.setFillColor(sf::Color(152, 133, 88)); 
 
     
@@ -301,7 +307,7 @@ int main()
     sf::Clock jumpClock;
     const float jumpCooldown = 0.7f;
 
-    floor.setPosition(-700, groundHeight);
+    floor.setPosition(-900, groundHeight);
 
     platforms.push_back(Platform(100, 600, 200, 40));
     platforms.push_back(Platform(400, 500, 200, 40));
@@ -367,7 +373,7 @@ int main()
     collectibles.push_back(Collectible(6800, groundHeight - 500));
 
     std::vector<finish> finishs;
-    finishs.push_back(finish(9000, groundHeight - 150));
+    finishs.push_back(finish(9000, groundHeight - 50));
 
     // Dodaj tyle, ile chcesz znajdźek.
     std::vector<Lava> lavas;
@@ -392,12 +398,20 @@ int main()
 
     sf::Font font;
     if (!font.loadFromFile("testfont.ttf")) {
-    // Wczytaj czcionkę, którą chcesz użyć. Upewnij się, że plik czcionki znajduje się w katalogu z projektem.  
+        std::cout << "Nie udalo sie zaladowac czcionki! Sprawdz czy posiadasz plik testfont.ttf" << std::endl; 
+        return EXIT_FAILURE;
     }
+
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("background1.png")) {
+        std::cout << "Nie udalo sie zaladowac tekstury! Sprawdz czy posiadasz plik background.png" << std::endl;
+        return EXIT_FAILURE;
+    }
+    sf::Sprite backgroundsprite(backgroundTexture);
 
     sf::Music music1;
     if (!music1.openFromFile("music1.wav")) {
-        // Obsługa błędu ładowania muzyki
+        std::cout << "Nie udalo sie zaladowac muzyki! Sprawdz czy posiadasz plik music1.wav" << std::endl;
         return EXIT_FAILURE;
     }
     music1.setVolume(20);
@@ -405,7 +419,7 @@ int main()
 
     sf::SoundBuffer jumpBuffer;
     if (!jumpBuffer.loadFromFile("jump.wav")) {
-        // Obsługa błędu ładowania dźwięku
+        std::cout << "Nie udalo sie zaladowac dzwieku! Sprawdz czy posiadasz plik jump.wav" << std::endl;
         return EXIT_FAILURE;
     }
     sf::Sound jumpSound(jumpBuffer);
@@ -413,7 +427,7 @@ int main()
 
     sf::SoundBuffer collectibleBuffer;
     if (!collectibleBuffer.loadFromFile("collectible.wav")) {
-        // Obsługa błędu ładowania dźwięku
+        std::cout<<"Nie udalo sie zaladowac dzwieku! Sprawdz czy posiadasz plik collectible.wav"<<std::endl;
         return EXIT_FAILURE;
     }
     sf::Sound collectibleSound(collectibleBuffer);
@@ -443,9 +457,9 @@ int main()
 
     sf::Text levelText;  
     levelText.setFont(font);
-    levelText.setCharacterSize(24);
+    levelText.setCharacterSize(50);
     levelText.setFillColor(sf::Color::White);
-    levelText.setString("Level Selection:\n1. Easy\n2. Medium\n3. Hard\n4. Hall of Fame");
+    levelText.setString("Level Selection:\n\n0. Tutorial\n1. Easy\n2. Medium\n3. Hard\n4. Hall of Fame");
     levelText.setPosition(window.getSize().x / 2.0f - levelText.getLocalBounds().width / 2.0f,
                           window.getSize().y / 2.0f - levelText.getLocalBounds().height / 2.0f);
     sf::Text menuText;
@@ -453,20 +467,26 @@ int main()
     menuText.setCharacterSize(24);
     menuText.setFillColor(sf::Color::White);
     menuText.setString("PRESS 'P' TO CHANGE SCREEN MODE");
-    float xPositionMenuText = window.getSize().x - menuText.getLocalBounds().width - 20.0f;
-    float yPositionMenuText = window.getSize().y - menuText.getLocalBounds().height - 20.0f;
+    
+    
+    float margin = 10.0f;
+    float xPositionMenuText = camera.getCenter().x - menuText.getLocalBounds().width - margin;
+    float yPositionMenuText = margin;
     menuText.setPosition(xPositionMenuText, yPositionMenuText);
 
     sf::Texture mcTexture;
     if (!mcTexture.loadFromFile("mc.png")) {
+        std::cout<<"Nie udalo sie zaladowac tekstury! Sprawdz czy posiadasz plik mc.png"<<std::endl;
         return -1;
     }
     sf::Texture jumpR;
     if (!jumpR.loadFromFile("jumpR.png")) {
+        std::cout<<"Nie udalo sie zaladowac tekstury! Sprawdz czy posiadasz plik jumpR.png"<<std::endl;
         return -1;
     }
     sf::Texture jumpL;
     if (!jumpL.loadFromFile("jumpL.png")) {
+        std::cout<<"Nie udalo sie zaladowac tekstury! Sprawdz czy posiadasz plik jumpL.png"<<std::endl;
         return -1;
     }
 
@@ -501,11 +521,11 @@ int main()
     sf::Sprite currentMC = MC; // Ustaw sprite'a jako aktualny sprite
 
 
-    startText.setPosition(window.getSize().x / 2.0f - startText.getLocalBounds().width / 2.0f,
-                       window.getSize().y / 2.0f - startText.getLocalBounds().height / 2.0f);
+    startText.setPosition(camera.getCenter().x - startText.getLocalBounds().width / 2.0f,
+                       camera.getCenter().y  - startText.getLocalBounds().height / 2.0f);
 
-    exitText.setPosition(window.getSize().x / 2.0f - exitText.getLocalBounds().width / 2.0f,
-                       window.getSize().y / 2.0f - exitText.getLocalBounds().height / 2.0f + startText.getLocalBounds().height);
+    exitText.setPosition(camera.getCenter().x  - exitText.getLocalBounds().width / 2.0f,
+                       camera.getCenter().y  - exitText.getLocalBounds().height / 2.0f + startText.getLocalBounds().height);
 
     sf::Text endText;
     sf::Text endText2;
@@ -553,8 +573,6 @@ int main()
     std::vector<Enemy> tutorialEnemies;
     sf::Text tutorialText;
 
-    // ...
-
     tutorialPlatforms.push_back(Platform(200, groundHeight - 150, 200, 40));
     tutorialEnemies.push_back(Enemy(500, groundHeight - 200, 80, 80, 1.0f, 300));
 
@@ -562,7 +580,7 @@ int main()
     tutorialText.setCharacterSize(24);
     tutorialText.setFillColor(sf::Color::White);
     tutorialText.setString("PRESS SPACE TO JUMP!");
-    tutorialText.setPosition(200, groundHeight - 200);
+    tutorialText.setPosition(200, groundHeight - 1000);
 
     while (window.isOpen())
     {
@@ -603,6 +621,9 @@ int main()
                     }else if(event.key.code == sf::Keyboard::Escape){
                     if(gameState == MainMenu || GameFinished || isGameOver){
                         window.close();
+                    }else if(isGamePaused){
+                        gameState=MainMenu;
+                        isGamePaused = false;
                     }
                 }else if (event.key.code == sf::Keyboard::Tab && gameState == Gameplay ){
                     isGamePaused = !isGamePaused;
@@ -615,13 +636,13 @@ int main()
                         screenMode = Windowed;
                         window.create(rozdzielczosc, "Project Jade", sf::Style::Default);
                     }
-                }
+                } 
             }
         }
         if(GameFinished){
-                finishedText1.setPosition(camera.getCenter().x - finishedText1.getLocalBounds().width ,camera.getCenter().y - finishedText1.getLocalBounds().height );
-                finishedText2.setPosition(camera.getCenter().x  - finishedText2.getLocalBounds().width ,camera.getCenter().y  - finishedText2.getLocalBounds().height  + finishedText1.getLocalBounds().height);
-                finishedText3.setPosition(camera.getCenter().x  - finishedText3.getLocalBounds().width ,camera.getCenter().y - finishedText3.getLocalBounds().height  + (finishedText1.getLocalBounds().height + finishedText2.getLocalBounds().height));
+                finishedText1.setPosition(camera.getCenter().x - finishedText1.getLocalBounds().width/2 ,camera.getCenter().y - finishedText1.getLocalBounds().height );
+                finishedText2.setPosition(camera.getCenter().x  - finishedText2.getLocalBounds().width/2 ,camera.getCenter().y  - finishedText2.getLocalBounds().height  + finishedText1.getLocalBounds().height);
+                finishedText3.setPosition(camera.getCenter().x  - finishedText3.getLocalBounds().width/2 ,camera.getCenter().y - finishedText3.getLocalBounds().height  + (finishedText1.getLocalBounds().height + finishedText2.getLocalBounds().height));
                 finishedText2.setString("YOUR SCORE: " + std::to_string(points));
                 window.clear();
                 window.draw(finishedText1);
@@ -650,12 +671,23 @@ int main()
                     GameSaved = true;
                     }
        }else if(gameState == MainMenu){
+        float margin = 10.0f;
+        float xPositionMenuText = camera.getCenter().x- 200.0f;
+        float yPositionMenuText = margin;
+        menuText.setPosition(xPositionMenuText, yPositionMenuText);
+        startText.setPosition(camera.getCenter().x - startText.getLocalBounds().width / 2.0f,
+                       camera.getCenter().y  - startText.getLocalBounds().height / 2.0f);
+
+        exitText.setPosition(camera.getCenter().x  - exitText.getLocalBounds().width / 2.0f,
+                       camera.getCenter().y  - exitText.getLocalBounds().height / 2.0f + startText.getLocalBounds().height);
             window.clear();
             window.draw(startText);
             window.draw(exitText);
             window.draw(menuText);
             window.display();
         }else if(gameState == LevelSelection){
+            levelText.setPosition(camera.getCenter().x - levelText.getLocalBounds().width / 2.0f,
+                          camera.getCenter().y - levelText.getLocalBounds().height / 2.0f);
             window.clear();
             window.draw(levelText);
             window.display();
@@ -785,6 +817,8 @@ else if (isLeft)
         if(currentLevel == Easy){ 
            invisibleWall.setPosition(90, 0); 
               window.draw(invisibleWall);
+                finishleWall.setPosition(9100, 0);
+                window.draw(finishleWall);
            if (hero.getGlobalBounds().intersects(invisibleWall.getGlobalBounds())){
             hero.setPosition(hero.getPosition().x + 5, hero.getPosition().y);
         }
@@ -802,6 +836,16 @@ for (auto it = specialEnemies.begin(); it != specialEnemies.end(); ) {
     it->shoot();
     it->updateBullets();
     it->drawBullets(window);
+    
+    const auto& enemyBullets = it->getBullets();
+    for (const auto& bullet : enemyBullets) {
+        if (bullet.getGlobalBounds().intersects(hero.getGlobalBounds())) {
+            if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+            health--;
+            damageClock.restart();
+        }
+        }
+    }
 
     // Check collision with special enemy
     if (it->isColliding(hero) && it->isHeadJumpedOn(hero) && isJumping) {
@@ -817,6 +861,10 @@ for (auto it = specialEnemies.begin(); it != specialEnemies.end(); ) {
     } else {
         ++it;
         } 
+    
+            
+        
+    
 }
 
 
@@ -839,6 +887,8 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
     } else {
         ++it;
         } 
+
+    
 }
 
             for (auto& lava : lavas) {
@@ -921,6 +971,7 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
             }else if (currentLevel == Tutorial) {
     // Kod dla poziomu samouczka
     window.clear(backgroundColorLevelOne);
+    //window.draw(backgroundsprite);
     window.draw(hero);
     window.draw(currentMC);
     window.draw(floor);
@@ -974,8 +1025,8 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
         pauseText.setFont(font);
         pauseText.setCharacterSize(50);
         pauseText.setFillColor(sf::Color::White);
-        pauseText.setString("GRA ZATRZYMANA");
-        pauseText.setPosition(camera.getCenter().x, camera.getCenter().y);
+        pauseText.setString("GAME PAUSED\nPRESS TAB TO RESUME\nPRESS ESCAPE TO GO BACK TO EXIT THE GAME");
+        pauseText.setPosition(camera.getCenter().x-pauseText.getLocalBounds().width/2.0f, camera.getCenter().y);
         window.clear();
         window.draw(pauseText);
         window.display();
