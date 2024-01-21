@@ -63,6 +63,9 @@ Remember: paths to SFML's include or lib folders may differ from those presented
   - Pause (only works in Gameplay): Key 'TAB'
   - Lock the option in the menu: Numeric keypad
   - Choose the option in the menu: Key 'ENTER'
+
+ ## Postscriptum
+That would be all. If you've decided to download and try the game, I sincerely thank you. This is my first 'larger' programming project. I know it's not perfect, but I tried my best to make everything turn out as well as possible. The game is incredibly simple, and if I had more time, I would make it even better.
  
 ---
 
@@ -131,3 +134,6 @@ Pamiętaj: ścieżki do folderów include lub lib SFML mogą różnić się od t
   - Pauza (działa tylko w trakcie rozgrywki): Klawisz 'TAB'
   - Zablokuj opcję w menu: Klawiatura numeryczna
   - Wybierz opcję w menu: Klawisz 'ENTER'
+
+## Postscriptum
+To by było wszystko. Jeśli zdecydowałeś się pobrać i spróbować gry to bardzo dziękuję. To jest mój pierwszy 'większy' projekt programistyczny. Wiem, że nie jest idealny ale starałem się, aby wszystko wyszło jak najlepiej. Gra jest niezwykle prosta i jakbym miał więcej czasu to bym zrobił ją jeszcze lepszą.
