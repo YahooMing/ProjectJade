@@ -399,6 +399,19 @@ int main()
     }
     sf::Sprite backgroundsprite(backgroundTexture);
 
+    sf::Texture backgroundTexture1;
+    if (!backgroundTexture1.loadFromFile("..\\textures\\background2.png")) {
+        std::cout << "Nie udalo sie zaladowac tekstury! Sprawdz czy posiadasz plik background.png" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    sf::Texture backgroundTexture2;
+    if (!backgroundTexture2.loadFromFile("..\\textures\\background3.png")) {
+        std::cout << "Nie udalo sie zaladowac tekstury! Sprawdz czy posiadasz plik background.png" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+
     sf::Music music1;
     if (!music1.openFromFile("..\\sounds\\music1.wav")) {
         std::cout << "Nie udalo sie zaladowac muzyki! Sprawdz czy posiadasz plik music1.wav" << std::endl;
@@ -797,6 +810,9 @@ else if (isLeft)
 
 
         window.clear(backgroundColorLevelOne);
+        backgroundsprite.setPosition(camera.getCenter().x - cameraSize.x / 2.0f, camera.getCenter().y - cameraSize.y / 2.0f);
+        
+        window.draw(backgroundsprite);
         window.draw(hero);
         
         window.draw(currentMC);
@@ -805,12 +821,17 @@ else if (isLeft)
         window.draw(pointsText);
 
         if(currentLevel == Easy){ 
+            backgroundsprite.setTexture(backgroundTexture);
+            backgroundsprite.setScale(8, 8);
            invisibleWall.setPosition(90, 0); 
               window.draw(invisibleWall);
                 finishleWall.setPosition(9100, 0);
                 window.draw(finishleWall);
            if (hero.getGlobalBounds().intersects(invisibleWall.getGlobalBounds())){
             hero.setPosition(hero.getPosition().x + 5, hero.getPosition().y);
+        }
+        if (hero.getGlobalBounds().intersects(finishleWall.getGlobalBounds())){
+            hero.setPosition(hero.getPosition().x - 5, hero.getPosition().y);
         }
 
         for(auto& finish : finishs){
@@ -920,8 +941,98 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
     ++it;
 } 
             }else if(currentLevel == Medium){
+                backgroundsprite.setTexture(backgroundTexture1);
+                backgroundsprite.setScale(8, 8);
+              invisibleWall.setPosition(90, 0); 
+              window.draw(invisibleWall);
+                finishleWall.setPosition(9100, 0);
+                window.draw(finishleWall);
+           if (hero.getGlobalBounds().intersects(invisibleWall.getGlobalBounds())){
+            hero.setPosition(hero.getPosition().x + 5, hero.getPosition().y);
+        }
+        if (hero.getGlobalBounds().intersects(finishleWall.getGlobalBounds())){
+            hero.setPosition(hero.getPosition().x - 5, hero.getPosition().y);
+        }
 
-        for (const auto& platform : platforms2)
+        for(auto& finish : finishs){
+            finish.draw(window);
+            if(finish.isColliding(hero)){
+                GameFinished = true;
+            }
+        }
+
+for (auto it = specialEnemies.begin(); it != specialEnemies.end(); ) {
+    it->patrol();
+    it->draw(window);
+    it->shoot();
+    it->updateBullets();
+    it->drawBullets(window);
+    
+    const auto& enemyBullets = it->getBullets();
+    for (const auto& bullet : enemyBullets) {
+        if (bullet.getGlobalBounds().intersects(hero.getGlobalBounds())) {
+            if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+            health--;
+            damageClock.restart();
+        }
+        }
+    }
+
+    // Check collision with special enemy
+    if (it->isColliding(hero) && it->isHeadJumpedOn(hero) && isJumping) {
+        // Handle collision with special enemy
+        // ...
+        it->takeDamage();  // Use the returned iterator
+        points += 100;
+    }else if(it->isColliding(hero) && !it->isHeadJumpedOn(hero) && !isJumping){
+        if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+                health--;
+                damageClock.restart();
+            }
+    } else {
+        ++it;
+        } 
+    
+            
+        
+    
+}
+
+
+
+for (auto it = enemies.begin(); it != enemies.end(); ) {
+    it->patrol();
+    it->draw(window);
+
+    // Check collision with special enemy
+    if (it->isColliding(hero) && it->isHeadJumpedOn(hero) && isJumping) {
+        // Handle collision with special enemy
+        // ...
+        it->move(10000.0f, 10000.0f);  // Use the returned iterator
+        points += 100;
+    }else if(it->isColliding(hero) && !it->isHeadJumpedOn(hero) && !isJumping){
+        if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+                health--;
+                damageClock.restart();
+            }
+    } else {
+        ++it;
+        } 
+
+    
+}
+
+            for (auto& lava : lavas) {
+                if (lava.isColliding(hero)) {
+                    if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+                        health -= lava.getDamage();
+                        damageClock.restart();
+                    }
+                }
+                lava.draw(window);
+            }
+ 
+        for (const auto& platform : platforms)
         {
             if (platform.isColliding(hero))
             {
@@ -935,12 +1046,113 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
             }
         }
 
-        for (const auto& platform : platforms2)
+        for (const auto& platform : platforms)
         {
             platform.draw(window);
         }
+
+        for (auto it = collectibles.begin(); it != collectibles.end();) {
+        if (it->isColliding(hero) && !it->isCollected) {
+        points += 50;  // Przykładowo przyznaj 50 punktów za zebranie każdej znajdźki
+        it->isCollected = true;
+        collectibleSound.play();
+    }
+    it->draw(window);
+    ++it;
+} 
             }else if(currentLevel == Hard){
-                for (const auto& platform : platforms3)
+                backgroundsprite.setTexture(backgroundTexture2);
+            backgroundsprite.setScale(8, 7);
+           invisibleWall.setPosition(90, 0); 
+              window.draw(invisibleWall);
+                finishleWall.setPosition(9100, 0);
+                window.draw(finishleWall);
+           if (hero.getGlobalBounds().intersects(invisibleWall.getGlobalBounds())){
+            hero.setPosition(hero.getPosition().x + 5, hero.getPosition().y);
+        }
+        if (hero.getGlobalBounds().intersects(finishleWall.getGlobalBounds())){
+            hero.setPosition(hero.getPosition().x - 5, hero.getPosition().y);
+        }
+
+        for(auto& finish : finishs){
+            finish.draw(window);
+            if(finish.isColliding(hero)){
+                GameFinished = true;
+            }
+        }
+
+for (auto it = specialEnemies.begin(); it != specialEnemies.end(); ) {
+    it->patrol();
+    it->draw(window);
+    it->shoot();
+    it->updateBullets();
+    it->drawBullets(window);
+    
+    const auto& enemyBullets = it->getBullets();
+    for (const auto& bullet : enemyBullets) {
+        if (bullet.getGlobalBounds().intersects(hero.getGlobalBounds())) {
+            if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+            health--;
+            damageClock.restart();
+        }
+        }
+    }
+
+    // Check collision with special enemy
+    if (it->isColliding(hero) && it->isHeadJumpedOn(hero) && isJumping) {
+        // Handle collision with special enemy
+        // ...
+        it->takeDamage();  // Use the returned iterator
+        points += 100;
+    }else if(it->isColliding(hero) && !it->isHeadJumpedOn(hero) && !isJumping){
+        if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+                health--;
+                damageClock.restart();
+            }
+    } else {
+        ++it;
+        } 
+    
+            
+        
+    
+}
+
+
+
+for (auto it = enemies.begin(); it != enemies.end(); ) {
+    it->patrol();
+    it->draw(window);
+
+    // Check collision with special enemy
+    if (it->isColliding(hero) && it->isHeadJumpedOn(hero) && isJumping) {
+        // Handle collision with special enemy
+        // ...
+        it->move(10000.0f, 10000.0f);  // Use the returned iterator
+        points += 100;
+    }else if(it->isColliding(hero) && !it->isHeadJumpedOn(hero) && !isJumping){
+        if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+                health--;
+                damageClock.restart();
+            }
+    } else {
+        ++it;
+        } 
+
+    
+}
+
+            for (auto& lava : lavas) {
+                if (lava.isColliding(hero)) {
+                    if (damageClock.getElapsedTime().asSeconds() >= damageCooldown) {
+                        health -= lava.getDamage();
+                        damageClock.restart();
+                    }
+                }
+                lava.draw(window);
+            }
+ 
+        for (const auto& platform : platforms)
         {
             if (platform.isColliding(hero))
             {
@@ -954,14 +1166,23 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
             }
         }
 
-        for (const auto& platform : platforms3)
+        for (const auto& platform : platforms)
         {
             platform.draw(window);
         }
+
+        for (auto it = collectibles.begin(); it != collectibles.end();) {
+        if (it->isColliding(hero) && !it->isCollected) {
+        points += 50;  // Przykładowo przyznaj 50 punktów za zebranie każdej znajdźki
+        it->isCollected = true;
+        collectibleSound.play();
+    }
+    it->draw(window);
+    ++it;
+} 
             }else if (currentLevel == Tutorial) {
     // Kod dla poziomu samouczka
     window.clear(backgroundColorLevelOne);
-    //window.draw(backgroundsprite);
     window.draw(hero);
     window.draw(currentMC);
     window.draw(floor);
