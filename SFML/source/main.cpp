@@ -109,6 +109,14 @@ int main()
     const float jumpCooldown = 0.7f;
 
     floor.setPosition(-900, groundHeight);
+    sf::Texture groundTexture;
+    if (!groundTexture.loadFromFile("..\\textures\\floor.jpg")) {
+        return -1;
+    }
+    groundTexture.setRepeated(true);
+    sf::Sprite groundSprite(groundTexture);
+    groundSprite.setTextureRect(sf::IntRect(0, 0, 12000, groundHeight));
+    groundSprite.setPosition(-900, groundHeight);
 
     //Platformy poziomu 1
     platforms.push_back(Platform(100, 600, 200, 40));
@@ -745,6 +753,7 @@ else if (isLeft)
             backgroundsprite.setScale(8, 8);
            invisibleWall.setPosition(90, 0); 
               window.draw(invisibleWall);
+              window.draw(groundSprite);
                 finishleWall.setPosition(9100, 0);
                 window.draw(finishleWall);
            if (hero.getGlobalBounds().intersects(invisibleWall.getGlobalBounds())){

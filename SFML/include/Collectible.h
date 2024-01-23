@@ -2,23 +2,27 @@
 
 class Collectible {
 public:
-    sf::CircleShape shape;
+    sf::Texture texture;
     bool isCollected;
+    sf::Vector2f position;
+    sf::Sprite sprite;
 
     Collectible(float x, float y) {
-        shape.setRadius(20);
-        shape.setFillColor(sf::Color::Yellow);
-        shape.setPosition(x, y);
+        position = {x, y};
         isCollected = false;
+        texture.loadFromFile("..\\textures\\coin.png");
+        texture.setSmooth(true);
     }
 
     void draw(sf::RenderWindow& window) {
         if (!isCollected) {
-            window.draw(shape);
+        sprite.setTexture(texture);
+        sprite.setPosition(position);
+        window.draw(sprite);
         }
     }
 
     bool isColliding(const sf::RectangleShape& other) const {
-        return shape.getGlobalBounds().intersects(other.getGlobalBounds());
+        return sprite.getGlobalBounds().intersects(other.getGlobalBounds());
     }
 };
