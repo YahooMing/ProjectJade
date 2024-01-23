@@ -7,7 +7,7 @@ Operating system: Windows 10 / Windows 11
 
 SFML Library: Version 2.5.1 or later
 
-Additional Notes: A keyboard is required for optimal gameplay experience
+Additional Notes: A keyboard is required for optimal gameplay experience, resolution 1920x1080 is required for all the graphical assets.
 
 WARNING
 
@@ -78,7 +78,7 @@ System operacyjny: Windows 10 / Windows 11
 
 Biblioteka SFML: Wersja 2.5.1 lub nowsza
 
-Dodatkowe uwagi: Do optymalnego doświadczenia z rozgrywką wymagana jest klawiatura.
+Dodatkowe uwagi: Do optymalnego doświadczenia z rozgrywką wymagana jest klawiatura. Rozdzielczość 1920x1080 ekranu jest wymagana, aby tekstury się nie psuły.
 
 OSTRZEŻENIE
 
