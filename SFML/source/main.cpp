@@ -871,6 +871,7 @@ for (auto it = enemies.begin(); it != enemies.end(); ) {
               window.draw(invisibleWall);
                 finishleWall.setPosition(9100, 0);
                 window.draw(finishleWall);
+                window.draw(groundSprite);
            if (hero.getGlobalBounds().intersects(invisibleWall.getGlobalBounds())){
             hero.setPosition(hero.getPosition().x + 5, hero.getPosition().y);
         }
@@ -988,6 +989,7 @@ for (auto it = enemies2.begin(); it != enemies2.end(); ) {
               window.draw(invisibleWall);
                 finishleWall.setPosition(9100, 0);
                 window.draw(finishleWall);
+                window.draw(groundSprite);
            if (hero.getGlobalBounds().intersects(invisibleWall.getGlobalBounds())){
             hero.setPosition(hero.getPosition().x + 5, hero.getPosition().y);
         }
