@@ -17,6 +17,7 @@ To play the game, you need a few files (all included in the game folder). Howeve
 **If you only want to play the game**
    - Download PROJECT_JADE.zip
    - Extract PROJECT_JADE.zip
+   - Open source folder
    - Open ProjectJade.exe
    - Play the game all you want!
 
@@ -88,6 +89,7 @@ Aby zagrać w grę, potrzebujesz kilku plików (wszystkie zawarte w folderze gry
 **Jeśli chcesz tylko zagrać w grę**
    - Pobierz PROJECT_JADE.zip
    - Wypakuj PROJECT_JADE.zip
+   - Otwórz folder source
    - Otwórz ProjectJade.exe
    - Graj w grę ile chcesz!
 
